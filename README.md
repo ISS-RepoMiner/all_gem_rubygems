@@ -9,4 +9,6 @@ documentation
 
 # print all the gems in remote rubygems.org in stdout
 
-	RubyGem.collection
+	x = []
+	x = RubyGem.collection
+	puts x
