@@ -1,4 +1,5 @@
 require 'rubygems/spec_fetcher'
+require 'json'
 
 class RubyGem
 
@@ -49,7 +50,7 @@ class RubyGem
 		f.close
 	end
 
-	# work_flow to chain together
+	# work_flow to chain all the changes together
 	def self.work_flow
 		old_array = load_from_file("old_array.txt")
 		new_array = all_collection
@@ -57,5 +58,28 @@ class RubyGem
 		difference = check_difference(old_array,new_array)
 		difference
 	end
+
+	# get date of the day before yesterday
+	def self.get_date
+		today = Time.new
+		right_day = today-3600*24*2
+		right_day.strftime("%Y-%m-%d")
+	end
+
+	# get yesterday data in json format.
+	def self.get_yesterday_json
+		yesterday = get_date
+		gem_list = collection
+		gem_array = []
+		gem_list.each do |x|
+			gem_unit = {}
+			gem_unit["name"] = x
+			gem_unit["start_date"] = yesterday
+			gem_unit["end_date"] = yesterday
+			gem_array << gem_unit
+		end
+		gem_array.to_json
+	end
+
 
 end
