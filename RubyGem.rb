@@ -81,5 +81,16 @@ class RubyGem
 		gem_array.to_json
 	end
 
+	# get all the latest unique name of gems in json format
+	def self.get_collection_json
+		clt = collection
+		clt.to_json
+	end
+
+	#get all the latest name with version of gems in json format
+	def self.get_all_collection_json
+		aclt = all_collection
+		aclt.to_json
+	end
 
 end

@@ -12,5 +12,14 @@ class ListingService < Sinatra::Base
     get '/get_yesterday' do
       RubyGem.get_yesterday_json
     end
+
+    get '/collection' do
+      RubyGem.get_collection_json
+    end
+
+    get '/all_collection' do
+      RubyGem.get_all_collection_json
+    end
+
   end
 end
