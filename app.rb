@@ -5,7 +5,7 @@ class ListingService < Sinatra::Base
   # configure :development, :test do
   #   ConfigEnv.path_to_config("")
   helpers do
-    get '/hi' do
+    get '/' do
       "Hello World!"
     end
 
@@ -20,6 +20,5 @@ class ListingService < Sinatra::Base
     get '/all_collection' do
       RubyGem.get_all_collection_json
     end
-
   end
 end
