@@ -1,24 +1,25 @@
 require 'sinatra'
 require './RubyGem'
 
+# this is a web service for the gem list generate
 class ListingService < Sinatra::Base
   # configure :development, :test do
   #   ConfigEnv.path_to_config("")
   helpers do
     get '/' do
-      "Hello World!"
+      'Hello World!'
     end
 
-    get '/get_yesterday' do
-      RubyGem.get_yesterday_json
+    get '/collection/yesterday' do
+      RubyGem.yesterday_json
     end
 
     get '/collection' do
-      RubyGem.get_collection_json
+      RubyGem.collection_json
     end
 
     get '/all_collection' do
-      RubyGem.get_all_collection_json
+      RubyGem.all_collection_json
     end
   end
 end
