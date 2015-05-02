@@ -82,6 +82,4 @@ class RubyGem
 	end
 
 
-
-
 end
