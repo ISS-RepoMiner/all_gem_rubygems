@@ -1,14 +1,8 @@
 ## all_gem_rubygems
 This repo will return all the gems listed in rubygem.org
 
-#### Every time using the library, one need to do the work below.
+##### Return all the gem available in rubygems.org today and the date of the day before yesterday.
 
+	`IN: https://allgem.herokuapp.com/get_yesterday`
 
-documentation
-
-
-# print all the gems in remote rubygems.org in stdout
-
-	x = []
-	x = RubyGem.collection
-	puts x
+	`OUT: [{"name":"_","start_date":"2015-04-30","end_date":"2015-04-30"},{"name":"-","start_date":"2015-04-30","end_date":"2015-04-30"}..`
