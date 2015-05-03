@@ -1,5 +1,6 @@
 require 'sinatra'
 require './RubyGem'
+require './GemMapQueue'
 
 # this is a web service for the gem list generate
 class ListingService < Sinatra::Base
@@ -11,7 +12,10 @@ class ListingService < Sinatra::Base
     end
 
     get '/collection/yesterday' do
-      RubyGem.yesterday_json
+      hash_data = RubyGem.yesterday_json
+      queue = GemMiner::GemMapQueue.new('gemqueue')
+      queue.send_message_batch(hash_data)
+      hash_data.to_json
     end
 
     get '/collection' do

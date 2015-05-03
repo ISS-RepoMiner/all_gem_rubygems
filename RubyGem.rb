@@ -66,7 +66,7 @@ class RubyGem
     right_day.strftime('%Y-%m-%d')
   end
 
-  # get yesterday data in json format.
+  # get yesterday data in hash format.
   def self.yesterday_json
     yesterday = yesterday_date
     gem_list = collection
@@ -77,7 +77,7 @@ class RubyGem
       gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
       gem_array << gem_unit
     end
-    gem_array.to_json
+    gem_array
   end
 
   # get all the latest unique name of gems in json format
