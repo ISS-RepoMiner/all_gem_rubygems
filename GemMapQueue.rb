@@ -32,6 +32,17 @@ module GemMiner
       @sqs.send_message(queue_url: @queue_url, message_body: message)
     end
 
+    def send_message_batch(message)
+      message.each_slice(10) do |payload|
+        i=0
+        unit = payload.map do |item|
+          i += 1
+          {message_body: item.to_s, id: i.to_s}
+        end
+        @sqs.send_message_batch(queue_url: @queue_url, entries: unit)
+      end
+    end
+
     def messages_available
       attrs = @sqs.get_queue_attributes(
         queue_url: @queue_url,
