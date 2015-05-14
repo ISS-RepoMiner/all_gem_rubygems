@@ -15,6 +15,7 @@ class ListingService < Sinatra::Base
       hash_data = RubyGem.yesterday_json
       queue = GemMiner::GemMapQueue.new('GemMap')
       queue.send_message_batch(hash_data.to_json)
+      "success"
       # hash_data.to_json
     end
 
