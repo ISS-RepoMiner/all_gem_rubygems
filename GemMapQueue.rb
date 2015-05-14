@@ -37,7 +37,7 @@ module GemMiner
         i=0
         unit = payload.map do |item|
           i += 1
-          {message_body: item.to_s, id: i.to_s}
+          {message_body: item.to_json, id: i.to_s}
         end
         @sqs.send_message_batch(queue_url: @queue_url, entries: unit)
       end
