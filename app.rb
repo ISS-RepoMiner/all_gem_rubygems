@@ -14,8 +14,8 @@ class ListingService < Sinatra::Base
     get '/collection/yesterday' do
       hash_data = RubyGem.yesterday_json
       queue = GemMiner::GemMapQueue.new('GemMap')
-      queue.send_message_batch(hash_data)
-      hash_data.to_json
+      queue.send_message_batch(hash_data.to_json)
+      # hash_data.to_json
     end
 
     get '/collection' do
