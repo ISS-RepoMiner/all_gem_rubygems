@@ -80,6 +80,33 @@ class RubyGem
     gem_array
   end
 
+  # read gem name from github.txt
+  def self.open_github
+    File.open("github.txt","r") do |f|
+      gem_list = []
+      f.each_line do |line|
+        gem_name = line.split()[0]
+        gem_list << gem_name
+      end
+      gem_list
+    end
+  end
+
+  # set the github_gem with date information
+  def self.github_yesterday_json
+    gem_list = open_github
+    yesterday = yesterday_date
+    gem_array = []
+    gem_list.each do |x|
+      gem_unit = {}
+      gem_unit['name'] = x
+      gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
+      gem_array << gem_unit
+    end
+    gem_array
+  end
+
+
   # get all the latest unique name of gems in json format
   def self.collection_json
     clt = collection

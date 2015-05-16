@@ -11,6 +11,7 @@ class ListingService < Sinatra::Base
       'Hello World!'
     end
 
+    # this function will send all the gem from rubygems.org yesterday
     get '/collection/yesterday' do
       hash_data = RubyGem.yesterday_json
       queue = GemMiner::GemMapQueue.new('GemMap')
@@ -18,6 +19,14 @@ class ListingService < Sinatra::Base
       "success"
       # hash_data.to_json
     end
+
+    # this function send all the gem which has a github url
+    get '/github/collection/yesterday' do
+      hash_data = RubyGem.github_yesterday_json
+      queue = GemMiner::GemMapQueue.new('GemMap')
+      queue.send_message_batch(hash_data)
+      "success"
+    end      
 
     get '/collection' do
       RubyGem.collection_json
