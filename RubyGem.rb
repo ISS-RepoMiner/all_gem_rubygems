@@ -102,7 +102,7 @@ class RubyGem
 
   def self.updating_github_collection
     collections = collection_json
-    collections = JSON.load(collections)[1..1000]
+    collections = JSON.load(collections)[1..50]
     source_uri_set = {}
     collections.each do |x|
       hash_content = parse_from_remote(x)
@@ -140,7 +140,7 @@ class RubyGem
 
   # check if the gem is repositoried in github
   def self.check_github(hash_content)
-    puts hash_content["name"]
+    # puts hash_content["name"]
     if hash_content.has_key?("source_code_uri") and hash_content["source_code_uri"]!=nil
       if hash_content["source_code_uri"].include?("github")
         return "source_code_uri"
@@ -171,6 +171,7 @@ class RubyGem
       return source_uri_set
     else
       source_uri_set.merge!source_uri
+      return source_uri_set
     end
   end
 
@@ -190,6 +191,30 @@ class RubyGem
 
   def self.write_to_github_file(source_uri_set)
     File.open("github_info.txt","w"){|file| source_uri_set.each do |k,v| file.write(k+"\t"+v+"\n") end}
+  end
+
+  # write one by one json format data with a comman in the end of each line
+  def self.write_json_all(all_info)
+    File.open("jsonfor.json","a") do |f| f.puts all_info.to_json+"," end
+  end
+
+  # load the json format I need
+  def self.load_json(file)
+    f = File.read(file)
+    data_hash = JSON.parse(f)
+    data_hash
+  end
+
+  # first time write
+  def self.first_write_all
+    collections = collection_json
+    collections = JSON.load(collections)
+    File.open("jsonfor.json","a") do |f|
+      collections.each do |x|
+        hash_content = parse_from_remote(x)
+        f.puts hash_content.to_json+","
+      end
+    end
   end
 
 end
