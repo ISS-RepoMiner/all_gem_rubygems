@@ -26,7 +26,7 @@ class ListingService < Sinatra::Base
       queue = GemMiner::GemMapQueue.new('GemMap')
       queue.send_message_batch(hash_data)
       "success"
-    end      
+    end
 
     get '/collection' do
       RubyGem.collection_json
@@ -35,5 +35,7 @@ class ListingService < Sinatra::Base
     get '/all_collection' do
       RubyGem.all_collection_json
     end
+
+
   end
 end

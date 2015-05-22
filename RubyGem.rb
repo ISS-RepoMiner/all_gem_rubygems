@@ -1,5 +1,6 @@
 require 'rubygems/spec_fetcher'
 require 'json'
+require 'httparty'
 
 # this class is used to get the name list of gem in specific form
 class RubyGem
@@ -94,7 +95,7 @@ class RubyGem
 
   # set the github_gem with date information
   def self.github_yesterday_json
-    gem_list = open_github
+    gem_list = updating_github_gemlist
     yesterday = yesterday_date
     gem_array = []
     gem_list.each do |x|
@@ -106,12 +107,30 @@ class RubyGem
     gem_array
   end
 
-
   # get all the latest unique name of gems in json format
   def self.collection_json
     clt = collection
     clt.to_json
   end
+
+  def self.updating_github_collection
+    collections = collection_json
+    collections = JSON.load(collections)[0..30]
+    source_uri_set = {}
+    collections.each do |x|
+      hash_content = parse_from_remote(x)
+      signal = check_github(hash_content)
+      source_uri = get_source_uri(hash_content,signal)
+      add_checked_results(source_uri, source_uri_set)
+    end
+    source_uri_set
+  end
+
+  def self.updating_github_gemlist
+    source_uri_set = updating_github_collection
+    source_uri_set.keys
+  end
+
 
   # get all the latest name with version of gems in json format
   def self.all_collection_json
@@ -122,4 +141,50 @@ class RubyGem
     end
     aclt_hash.to_json
   end
+
+  # get all the latest unique name of gems and the specification from RubyGems.org
+  def self.parse_from_remote(gem_name)
+    url = 'https://rubygems.org/api/v1/gems/'+gem_name+'.json'
+    response = HTTParty.get(url)
+    content = response.body
+    hash_content = JSON.parse(content)
+    hash_content
+  end
+
+  # check if the gem is repositoried in github
+  def self.check_github(hash_content)
+    puts hash_content["name"]
+    if hash_content.has_key?("source_code_uri") and hash_content["source_code_uri"]!=nil
+      if hash_content["source_code_uri"].include?("github")
+        return "source_code_uri"
+      end
+    end
+    if hash_content.has_key?("homepage_uri") and hash_content["homepage_uri"]!=nil
+      if hash_content["homepage_uri"].include?("github")
+        return "homepage_uri"
+      end
+    end
+    return "no source"
+  end
+
+  # check from the signal and parse the name and source code place in github
+  def self.get_source_uri(hash_content, signal)
+    if signal=="source_code_uri"
+      return {hash_content["name"]=>hash_content["source_code_uri"]}
+    elsif signal=="homepage_uri"
+      return {hash_content["name"]=>hash_content["homepage_uri"]}
+    else
+      return "not_found"
+    end
+  end
+
+  # add all the element to a txt file and send the sequence, I should not have too much http request!!!,use a variable when use it in time.
+  def self.add_checked_results(source_uri,source_uri_set)
+    if source_uri=="not_found"
+      return source_uri_set
+    else
+      source_uri_set.merge!source_uri
+    end
+  end
+
 end
