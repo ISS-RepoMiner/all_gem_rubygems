@@ -36,6 +36,5 @@ class ListingService < Sinatra::Base
       RubyGem.all_collection_json
     end
 
-
   end
 end
