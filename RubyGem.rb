@@ -102,7 +102,7 @@ class RubyGem
 
   def self.updating_github_collection
     collections = collection_json
-    collections = JSON.load(collections)#[1..30]
+    collections = JSON.load(collections)[1..1000]
     source_uri_set = {}
     collections.each do |x|
       hash_content = parse_from_remote(x)
