@@ -115,7 +115,7 @@ class RubyGem
 
   def self.updating_github_collection
     collections = collection_json
-    collections = JSON.load(collections)[0..30]
+    collections = JSON.load(collections)[1..30]
     source_uri_set = {}
     collections.each do |x|
       hash_content = parse_from_remote(x)
@@ -185,6 +185,10 @@ class RubyGem
     else
       source_uri_set.merge!source_uri
     end
+  end
+
+  def self.write_to_file(source_uri_set)
+    File.open("github_info.txt","w"){|file| source_uri_set.each do |k,v| file.write(k+"\t"+v+"\n") end}
   end
 
 end
