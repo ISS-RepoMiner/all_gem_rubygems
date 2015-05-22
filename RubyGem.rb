@@ -93,19 +93,6 @@ class RubyGem
     end
   end
 
-  # set the github_gem with date information
-  def self.github_yesterday_json
-    gem_list = updating_github_gemlist
-    yesterday = yesterday_date
-    gem_array = []
-    gem_list.each do |x|
-      gem_unit = {}
-      gem_unit['name'] = x
-      gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
-      gem_array << gem_unit
-    end
-    gem_array
-  end
 
   # get all the latest unique name of gems in json format
   def self.collection_json
@@ -128,9 +115,9 @@ class RubyGem
 
   def self.updating_github_gemlist
     source_uri_set = updating_github_collection
+    write_to_file(source_uri_set)
     source_uri_set.keys
   end
-
 
   # get all the latest name with version of gems in json format
   def self.all_collection_json
@@ -185,6 +172,20 @@ class RubyGem
     else
       source_uri_set.merge!source_uri
     end
+  end
+
+  # set the github_gem with date information
+  def self.github_yesterday_json
+    gem_list = updating_github_gemlist
+    yesterday = yesterday_date
+    gem_array = []
+    gem_list.each do |x|
+      gem_unit = {}
+      gem_unit['name'] = x
+      gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
+      gem_array << gem_unit
+    end
+    gem_array
   end
 
   def self.write_to_file(source_uri_set)
