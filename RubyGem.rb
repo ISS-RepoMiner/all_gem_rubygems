@@ -1,6 +1,7 @@
 require 'rubygems/spec_fetcher'
 require 'json'
 require 'httparty'
+require 'concurrent'
 
 # this class is used to get the name list of gem in specific form
 class RubyGem
@@ -101,15 +102,24 @@ class RubyGem
   end
 
   def self.updating_github_collection
+    pool = Concurrent::CachedThreadPool.new
+    lock = Mutex.new
+
     collections = collection_json
     collections = JSON.load(collections)[1..50]
     source_uri_set = {}
     collections.each do |x|
-      hash_content = parse_from_remote(x)
-      signal = check_github(hash_content)
-      source_uri = get_source_uri(hash_content,signal)
-      add_checked_results(source_uri, source_uri_set)
+      pool.post do
+        hash_content = parse_from_remote(x)
+        signal = check_github(hash_content)
+        source_uri = get_source_uri(hash_content,signal)
+        lock.synchronize { add_checked_results(source_uri, source_uri_set) }
+      end
     end
+
+    pool.shutdown
+    pool.wait_for_termination
+
     source_uri_set
   end
 
@@ -207,18 +217,32 @@ class RubyGem
 
   # first time write
   def self.first_write_all
+    pool = Concurrent::FixedThreadPool.new(100)
+    lock = Mutex.new
+
+    puts "Getting Full Collection"
     collections = collection_json
     collections = JSON.load(collections)[31000..-1]
-    File.open("jsonfor2.json","a") do |f|
-      collections.each do |x|
-        begin
-          hash_content = parse_from_remote(x)
-          f.puts hash_content.to_json+","
-        rescue Exception => msg
-          puts x
-          puts msg
+
+    puts "Analyzing each gem source"
+    File.open("jsonfor3.json","a") do |f|
+      collections.each_with_index do |x, i|
+        pool.post do
+          begin
+            # puts i if i % 10 == 0
+            hash_content = parse_from_remote(x)
+            out_s = hash_content.to_json+","
+            puts "[#{i}] #{out_s[0..40]}"
+            lock.synchronize { f.puts out_s }
+          rescue Exception => msg
+            puts x
+            puts msg
+          end
         end
       end
+
+      pool.shutdown
+      pool.wait_for_termination
     end
   end
 
