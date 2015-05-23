@@ -10,6 +10,10 @@ GEM
     aws-sdk-resources (2.0.45)
       aws-sdk-core (= 2.0.45)
     builder (3.2.2)
+    concurrent-ruby (0.8.0)
+      ref (~> 1.0, >= 1.0.5)
+    concurrent-ruby-ext (0.8.0)
+      concurrent-ruby (~> 0.8.0)
     config_env (0.1.0)
     daemons (1.2.2)
     eventmachine (1.0.7)
@@ -24,6 +28,7 @@ GEM
     rack (1.6.1)
     rack-protection (1.5.3)
       rack
+    ref (1.0.5)
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -39,6 +44,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk
+  concurrent-ruby-ext
   config_env
   httparty
   sinatra
