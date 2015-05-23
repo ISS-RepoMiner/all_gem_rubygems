@@ -14,16 +14,6 @@ class RubyGem
     name_list.uniq
   end
 
-  # load older array and save it to old_array
-  def self.load_from_file(file_name)
-    old_array = []
-    f = File.readlines(file_name)
-    f.each do |x|
-      old_array << x.strip.split
-    end
-    old_array
-  end
-
   # just return latest array
   def self.all_collection
     name_vers = []
@@ -216,5 +206,16 @@ class RubyGem
       end
     end
   end
+
+  # load older array and save it to old_array
+  def self.load_from_file(file_name)
+    old_array = []
+    f = File.readlines(file_name)
+    f.each do |x|
+      old_array << x.strip.split
+    end
+    old_array
+  end
+
 
 end
