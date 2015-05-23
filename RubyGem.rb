@@ -208,11 +208,16 @@ class RubyGem
   # first time write
   def self.first_write_all
     collections = collection_json
-    collections = JSON.load(collections)
-    File.open("jsonfor.json","a") do |f|
+    collections = JSON.load(collections)[31000..-1]
+    File.open("jsonfor2.json","a") do |f|
       collections.each do |x|
-        hash_content = parse_from_remote(x)
-        f.puts hash_content.to_json+","
+        begin
+          hash_content = parse_from_remote(x)
+          f.puts hash_content.to_json+","
+        rescue Exception => msg
+          puts x
+          puts msg
+        end
       end
     end
   end
