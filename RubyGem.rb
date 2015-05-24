@@ -2,9 +2,59 @@ require 'rubygems/spec_fetcher'
 require 'json'
 require 'httparty'
 require 'concurrent'
+require 'gems'
+require './lib/no_sql_store'
+require './model/gem_spec_download'
+require 'benchmark'
 
 # this class is used to get the name list of gem in specific form
 class RubyGem
+
+  def self.workflow_get_sample_gem_info
+    pool = Concurrent::FixedThreadPool.new(100)
+    lock = Mutex.new
+
+    db = NoSqlStore.new
+    collection = JSON.load(collection_json).sample(10000)
+    collection.each do |x|
+      pool.post do
+        results = get_gem_info(x)
+        if results.class == Array
+          results.each do |result|
+          # puts "result is #{result}"
+            gem_info = GemMiner::GemSpecDownload.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
+            db.save(gem_info)
+          end
+        end
+      end
+    end
+    pool.shutdown
+    pool.wait_for_termination
+  end
+
+
+
+  # get the information of one gem (all) to be saved to dynamodb later
+  def self.get_gem_info(gem_name)
+    gem_info = Gems.info gem_name
+    signal = RubyGem.check_github(gem_info)
+    if signal != "no source"
+      github_uri = gem_info[signal]
+      gem_versions = Gems.versions gem_name
+      dependencies = Gems.dependencies gem_name
+      if gem_versions.length == dependencies.length
+        sorted_gem_versions = gem_versions.sort_by{ |k| k["number"]}
+        sorted_depen = dependencies.sort_by{ |k| k[:number]}
+        data = sorted_gem_versions.each_with_index.map{|x,i| {"name"=>gem_name,"version"=>x["number"],"build_date"=>x["built_at"],"authors"=>x["authors"],"github"=>github_uri,"dependencies"=>sorted_depen[i][:dependencies].to_json,"platform"=>x["platform"]}}
+      else
+        puts "the gem #{gem_name} is updated right now, please try later"
+      end
+    else
+      puts "the gem #{gem_name} does not have a github uri"
+    end
+    data
+  end
+
   # this will return the latest unique gems name list without version
   def self.collection
     name_list = []

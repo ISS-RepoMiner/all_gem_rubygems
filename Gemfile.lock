@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.3.8)
     aws-sdk (2.0.45)
       aws-sdk-resources (= 2.0.45)
     aws-sdk-core (2.0.45)
@@ -9,26 +10,43 @@ GEM
       multi_json (~> 1.0)
     aws-sdk-resources (2.0.45)
       aws-sdk-core (= 2.0.45)
+    bond (0.5.1)
     builder (3.2.2)
     concurrent-ruby (0.8.0)
       ref (~> 1.0, >= 1.0.5)
     concurrent-ruby-ext (0.8.0)
       concurrent-ruby (~> 0.8.0)
     config_env (0.1.0)
+    crack (0.4.2)
+      safe_yaml (~> 1.0.0)
     daemons (1.2.2)
     eventmachine (1.0.7)
+    gems (0.8.3)
     httparty (0.13.5)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
     jmespath (1.0.2)
       multi_json (~> 1.0)
     json (1.8.2)
+    minitest (5.6.1)
     multi_json (1.11.0)
     multi_xml (0.5.5)
     rack (1.6.1)
     rack-protection (1.5.3)
       rack
+    rack-test (0.6.3)
+      rack (>= 1.0)
+    rake (10.4.2)
     ref (1.0.5)
+    ripl (0.7.1)
+      bond (~> 0.5.1)
+    ripl-multi_line (0.3.1)
+      ripl (>= 0.3.6)
+    ripl-rack (0.2.1)
+      rack (>= 1.0)
+      rack-test (~> 0.6.2)
+      ripl (>= 0.7.0)
+    safe_yaml (1.0.4)
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -38,14 +56,30 @@ GEM
       eventmachine (~> 1.0)
       rack (~> 1.0)
     tilt (2.0.1)
+    tux (0.3.0)
+      ripl (>= 0.3.5)
+      ripl-multi_line (>= 0.2.4)
+      ripl-rack (>= 0.2.0)
+      sinatra (>= 1.2.1)
+    webmock (1.21.0)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  aws-sdk
+  aws-sdk (~> 2)
   concurrent-ruby-ext
   config_env
+  gems
   httparty
+  json
+  minitest
+  rack
+  rack-test
+  rake
   sinatra
   thin
+  tux
+  webmock
