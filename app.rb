@@ -1,6 +1,6 @@
 require 'sinatra'
-require './RubyGem'
-require './GemMapQueue'
+require_relative 'lib/RubyGem'
+require_relative 'lib/GemMapQueue'
 
 # this is a web service for the gem list generate
 class ListingService < Sinatra::Base
