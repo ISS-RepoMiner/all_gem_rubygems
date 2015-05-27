@@ -3,9 +3,9 @@ require 'json'
 require 'httparty'
 require 'concurrent'
 require 'gems'
-require './lib/no_sql_store'
-require './model/gem_spec_download'
 require 'benchmark'
+require_relative '../model/gem_spec_download'
+require_relative 'no_sql_store'
 
 # this class is used to get the name list of gem in specific form
 class RubyGem
