@@ -1,0 +1,21 @@
+# Create config file from this template file
+# 1. copy this file to config/config_env.rb
+# 2. replace [*] below with corresponding keys/numbers/ids
+
+config_env do
+  set 'AWS_ACCESS_KEY_ID', '[AWS ACCESS KEY]'
+  set 'AWS_SECRET_ACCESS_KEY', '[AWS SECRET KEY]'
+
+  # AWS SNS Topic for messages that are pushed to our service
+  set 'WakeupTopicArn', '[TOPIC ARN]'
+end
+
+config_env :production do
+  # AWS Region: US East (N. Virginia)
+  set 'AWS_REGION', 'us-east-1'
+end
+
+config_env :development, :test do
+  # AWS Region: EU Central (Frankfurt)
+  set 'AWS_REGION', 'eu-central-1'
+end
