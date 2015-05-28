@@ -150,7 +150,7 @@ class RubyGem
     lock = Mutex.new
 
     collections = collection_json
-    collections = JSON.load(collections)[1..1000]
+    collections = JSON.load(collections)[1..50]
     source_uri_set = {}
     collections.each do |x|
       pool.post do
