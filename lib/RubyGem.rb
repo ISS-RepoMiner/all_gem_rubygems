@@ -141,6 +141,7 @@ class RubyGem
     clt.to_json
   end
 
+  # this part will write get the gem list with github url.
   def self.updating_github_collection
     pool = Concurrent::CachedThreadPool.new
     lock = Mutex.new
@@ -150,10 +151,14 @@ class RubyGem
     source_uri_set = {}
     collections.each do |x|
       pool.post do
-        hash_content = parse_from_remote(x)
-        signal = check_github(hash_content)
-        source_uri = get_source_uri(hash_content,signal)
-        lock.synchronize { add_checked_results(source_uri, source_uri_set) }
+        begin
+          hash_content = parse_from_remote(x)
+          signal = check_github(hash_content)
+          source_uri = get_source_uri(hash_content,signal)
+          lock.synchronize { add_checked_results(source_uri, source_uri_set) }
+        rescue Exception => msg
+          puts msg
+        end
       end
     end
 
