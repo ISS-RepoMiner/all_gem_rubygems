@@ -10,6 +10,30 @@ require_relative 'no_sql_store'
 # this class is used to get the name list of gem in specific form
 class RubyGem
 
+  # not sample testing
+  def self.workflow_get_all_gem_info
+    pool = Concurrent::FixedThreadPool.new(100)
+    lock = Mutex.new
+
+    db = NoSqlStore.new
+    collection = JSON.load(collection_json)
+    collection.each do |x|
+      pool.post do
+        results = get_gem_info(x)
+        if results.class == Array
+          results.each do |result|
+          # puts "result is #{result}"
+            gem_info = GemMiner::GemSpecDownload.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
+            # db.save(gem_info)
+            db.save_eventually(gem_info)
+          end
+        end
+      end
+    end
+    pool.shutdown
+    pool.wait_for_termination
+  end
+
   def self.workflow_get_sample_gem_info
     pool = Concurrent::FixedThreadPool.new(100)
     lock = Mutex.new
@@ -23,7 +47,8 @@ class RubyGem
           results.each do |result|
           # puts "result is #{result}"
             gem_info = GemMiner::GemSpecDownload.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
-            db.save(gem_info)
+            # db.save(gem_info)
+            db.save_eventually(gem_info)
           end
         end
       end
@@ -31,8 +56,6 @@ class RubyGem
     pool.shutdown
     pool.wait_for_termination
   end
-
-
 
   # get the information of one gem (all) to be saved to dynamodb later
   def self.get_gem_info(gem_name)

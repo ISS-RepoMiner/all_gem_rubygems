@@ -28,6 +28,16 @@ class ListingService < Sinatra::Base
       "success"
     end
 
+    get '/workflow_get_all_gem_info' do
+      workflow_get_all_gem_info
+      "success"
+    end
+
+    get '/workflow_get_sample_gem_info' do
+      workflow_get_sample_gem_info
+      "success"
+    end
+
     get '/collection' do
       RubyGem.collection_json
     end
