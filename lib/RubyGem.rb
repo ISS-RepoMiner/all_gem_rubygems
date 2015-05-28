@@ -250,8 +250,7 @@ class RubyGem
     pool = Concurrent::FixedThreadPool.new(100)
     lock = Mutex.new
     # pool = Concurrent::FixedThreadPool.new(100)
-    # collections = collection_json
-
+    collections = collection_json
     collections = JSON.load(collections).sample(1000)
     source_uri_set = {}
     collections.each do |x|
