@@ -39,7 +39,7 @@ class RubyGem
     lock = Mutex.new
 
     db = NoSqlStore.new
-    collection = JSON.load(collection_json).sample(10000)
+    collection = JSON.load(collection_json).sample(1000)
     collection.each do |x|
       pool.post do
         results = get_gem_info(x)
@@ -167,32 +167,7 @@ class RubyGem
 
 
   # start from here in github url getter work
-  # this part will write get the gem list with github url.
-  def self.updating_github_collection
-    pool = Concurrent::CachedThreadPool.new
-    lock = Mutex.new
 
-    collections = collection_json
-    collections = JSON.load(collections)[1..50]
-    source_uri_set = {}
-    collections.each do |x|
-      pool.post do
-        begin
-          hash_content = parse_from_remote(x)
-          signal = check_github(hash_content)
-          source_uri = get_source_uri(hash_content,signal)
-          lock.synchronize { add_checked_results(source_uri, source_uri_set) }
-        rescue Exception => msg
-          puts msg
-        end
-      end
-    end
-
-    pool.shutdown
-    pool.wait_for_termination
-
-    source_uri_set
-  end
 
   def self.updating_github_gemlist
     source_uri_set = updating_github_collection
@@ -270,6 +245,38 @@ class RubyGem
     gem_array
   end
 
+  # this part will write get the gem list with github url.
+  def self.updating_github_collection
+    pool = Concurrent::FixedThreadPool.new(100)
+    lock = Mutex.new
+    # pool = Concurrent::FixedThreadPool.new(100)
+    # collections = collection_json
+
+    collections = JSON.load(collections).sample(1000)
+    source_uri_set = {}
+    collections.each do |x|
+      pool.post do
+        begin
+          hash_content = parse_from_remote(x)
+          signal = check_github(hash_content)
+          source_uri = get_source_uri(hash_content,signal)
+          lock.synchronize { add_checked_results(source_uri, source_uri_set) }
+        rescue Exception => msg
+          puts msg
+        end
+      end
+    end
+
+    pool.shutdown
+    pool.wait_for_termination
+
+    source_uri_set
+  end
+
+
+
+
+
   def self.write_to_github_file(source_uri_set)
     File.open("github_info.txt","w"){|file| source_uri_set.each do |k,v| file.write(k+"\t"+v+"\n") end}
   end
@@ -285,6 +292,10 @@ class RubyGem
     data_hash = JSON.parse(f)
     data_hash
   end
+
+
+
+
 
   # first time write
   def self.first_write_all
