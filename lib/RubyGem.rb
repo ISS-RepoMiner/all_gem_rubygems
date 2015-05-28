@@ -141,13 +141,16 @@ class RubyGem
     clt.to_json
   end
 
+
+
+  # start from here in github url getter work
   # this part will write get the gem list with github url.
   def self.updating_github_collection
     pool = Concurrent::CachedThreadPool.new
     lock = Mutex.new
 
     collections = collection_json
-    collections = JSON.load(collections)[1..50]
+    collections = JSON.load(collections)
     source_uri_set = {}
     collections.each do |x|
       pool.post do
