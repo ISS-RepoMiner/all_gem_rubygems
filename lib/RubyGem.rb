@@ -4,58 +4,106 @@ require 'httparty'
 require 'concurrent'
 require 'gems'
 require 'benchmark'
-require_relative '../model/gem_spec_download'
+require_relative '../model/gem_version_spec'
 require_relative 'no_sql_store'
+require_relative 'GemMapQueue'
 
 # this class is used to get the name list of gem in specific form
 class RubyGem
 
-  # not sample testing
-  def self.workflow_get_all_gem_info
-    pool = Concurrent::FixedThreadPool.new(100)
-    lock = Mutex.new
-
-    db = NoSqlStore.new
-    collection = JSON.load(collection_json)
-    collection.each do |x|
-      pool.post do
-        results = get_gem_info(x)
-        if results.class == Array
-          results.each do |result|
-          # puts "result is #{result}"
-            gem_info = GemMiner::GemSpecDownload.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
-            # db.save(gem_info)
-            db.save_eventually(gem_info)
-          end
-        end
-      end
-    end
-    pool.shutdown
-    pool.wait_for_termination
-  end
-
   def self.workflow_get_sample_gem_info
     pool = Concurrent::FixedThreadPool.new(100)
     lock = Mutex.new
-
+    counter = 0
     db = NoSqlStore.new
-    collection = JSON.load(collection_json).sample(1000)
+    queue = GemMiner::GemMapQueue.new('GemMap')
+    yesterday = yesterday_date
+    gem_array = []
+    collection = JSON.load(collection_json).sample(100)
     collection.each do |x|
+
       pool.post do
         results = get_gem_info(x)
-        if results.class == Array
-          results.each do |result|
+
+        if results.class == Hash
+          # add the satisfied data to the sqs list for later use
+          lock.synchronize {
+            gem_unit = {}
+            gem_unit['name'] = x
+            gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
+            gem_array << gem_unit
+            # if there are less than 10 left?
+            if gem_array.length > 10
+                  queue.send_message_batch(gem_array)
+                  gem_array = []
+            end
+          }
+
+          results.each do |k,result|
           # puts "result is #{result}"
-            gem_info = GemMiner::GemSpecDownload.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
+            gem_info = GemMiner::GemVersionSpec.new(result["name"],result["version"],result["build_date"],result["authors"],result["github"],result["dependencies"],result["platform"])
+
             # db.save(gem_info)
-            db.save_eventually(gem_info)
+            # problem: if there is less than 25 left at last?
+            lock.synchronize{
+              db.save_eventually(gem_info)
+              counter=counter+1
+              puts counter
+            }
           end
+        end
+
+      end
+
+    end
+    pool.shutdown
+    pool.wait_for_termination
+    queue.send_message_batch(gem_array)
+    db.batch_flush
+
+  end
+
+
+  # set the github_gem with date information
+  def self.github_yesterday_json
+    gem_list = updating_github_gemlist
+    yesterday = yesterday_date
+    gem_array = []
+    gem_list.each do |x|
+      gem_unit = {}
+      gem_unit['name'] = x
+      gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
+      gem_array << gem_unit
+    end
+    gem_array
+  end
+
+  # this part will write get the gem list with github url.
+  def self.updating_github_collection
+    pool = Concurrent::FixedThreadPool.new(100)
+    lock = Mutex.new
+    # pool = Concurrent::FixedThreadPool.new(100)
+    collections = collection_json
+    collections = JSON.load(collections).sample(1000)
+    source_uri_set = {}
+    collections.each do |x|
+      pool.post do
+        begin
+          hash_content = parse_from_remote(x)
+          signal = check_github(hash_content)
+          source_uri = get_source_uri(hash_content,signal)
+          lock.synchronize { add_checked_results(source_uri, source_uri_set) }
+        rescue Exception => msg
+          puts msg
         end
       end
     end
     pool.shutdown
     pool.wait_for_termination
+    source_uri_set
   end
+
+
 
   # get the information of one gem (all) to be saved to dynamodb later
   def self.get_gem_info(gem_name)
@@ -64,18 +112,28 @@ class RubyGem
     if signal != "no source"
       github_uri = gem_info[signal]
       gem_versions = Gems.versions gem_name
+      # add a check to see if the gem with version have been stored in the database
       dependencies = Gems.dependencies gem_name
-      if gem_versions.length == dependencies.length
-        sorted_gem_versions = gem_versions.sort_by{ |k| k["number"]}
-        sorted_depen = dependencies.sort_by{ |k| k[:number]}
-        data = sorted_gem_versions.each_with_index.map{|x,i| {"name"=>gem_name,"version"=>x["number"],"build_date"=>x["built_at"],"authors"=>x["authors"],"github"=>github_uri,"dependencies"=>sorted_depen[i][:dependencies].to_json,"platform"=>x["platform"]}}
-      else
-        puts "the gem #{gem_name} is updated right now, please try later"
+      combined = Hash.new{ |h,k| h[k] = Hash.new(&h.default_proc) }
+      gem_versions.each do |x|
+        k = x["number"]
+        dependencies.each do |y|
+          if y[:number] == k
+            combined[k]["name"] = gem_name
+            combined[k]["version"] = x["number"]
+            combined[k]["build_date"] = x["built_at"]
+            combined[k]["authors"] = x["authors"]
+            combined[k]["github"] = github_uri
+            combined[k]["dependencies"] = y[:dependencies]
+            combined[k]["platform"] = x["platform"]
+          end
+        end
       end
     else
       puts "the gem #{gem_name} does not have a github uri"
+      return "not with a github uri"
     end
-    data
+    return combined
   end
 
   # this will return the latest unique gems name list without version
@@ -231,46 +289,8 @@ class RubyGem
     end
   end
 
-  # set the github_gem with date information
-  def self.github_yesterday_json
-    gem_list = updating_github_gemlist
-    yesterday = yesterday_date
-    gem_array = []
-    gem_list.each do |x|
-      gem_unit = {}
-      gem_unit['name'] = x
-      gem_unit['start_date'], gem_unit['end_date'] = yesterday, yesterday
-      gem_array << gem_unit
-    end
-    gem_array
-  end
 
-  # this part will write get the gem list with github url.
-  def self.updating_github_collection
-    pool = Concurrent::FixedThreadPool.new(100)
-    lock = Mutex.new
-    # pool = Concurrent::FixedThreadPool.new(100)
-    collections = collection_json
-    collections = JSON.load(collections).sample(1000)
-    source_uri_set = {}
-    collections.each do |x|
-      pool.post do
-        begin
-          hash_content = parse_from_remote(x)
-          signal = check_github(hash_content)
-          source_uri = get_source_uri(hash_content,signal)
-          lock.synchronize { add_checked_results(source_uri, source_uri_set) }
-        rescue Exception => msg
-          puts msg
-        end
-      end
-    end
 
-    pool.shutdown
-    pool.wait_for_termination
-
-    source_uri_set
-  end
 
 
 

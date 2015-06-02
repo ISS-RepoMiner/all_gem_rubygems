@@ -6,13 +6,13 @@ task :config do
 end
 
 namespace :db do
-  require_relative 'model/gem_spec_download'
+  require_relative 'model/gem_version_spec'
   require_relative 'lib/no_sql_store'
 
   desc 'Create GemSpecDownload table'
   task :create => [:config] do
     begin
-      NoSqlStore.new.create_table(GemMiner::GemSpecDownload, 4, 5)
+      NoSqlStore.new.create_table(GemMiner::GemVersionSpec, 4, 5)
       puts 'GemSpecDownload table created!'
     rescue Aws::DynamoDB::Errors::ResourceInUseException => e
       puts 'GemSpecDownload table already exists'

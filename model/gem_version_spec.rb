@@ -32,7 +32,7 @@ end
 
 module GemMiner
   # Model of daily downloads table for DynamoDB
-  class GemSpecDownload < DynamoNugget::Table
+  class GemVersionSpec < DynamoNugget::Table
     # def initialize(gem_name = nil, version = nil, date = nil, download = nil)#
     def initialize(name = nil, version = nil, build_date = nil, authors = nil, github = nil, dependencies = nil, platform = nil)
       hash_key = DynamoNugget::Key.new('name_version', String)
