@@ -9,13 +9,13 @@ namespace :db do
   require_relative 'model/gem_version_spec'
   require_relative 'lib/no_sql_store'
 
-  desc 'Create GemSpecDownload table'
+  desc 'Create GemVersionSpec table'
   task :create => [:config] do
     begin
       NoSqlStore.new.create_table(GemMiner::GemVersionSpec, 4, 5)
-      puts 'GemSpecDownload table created!'
+      puts 'GemVersionSpec table created!'
     rescue Aws::DynamoDB::Errors::ResourceInUseException => e
-      puts 'GemSpecDownload table already exists'
+      puts 'GemVersionSpec table already exists'
     rescue => e
       puts "Database error: #{e}"
     end
