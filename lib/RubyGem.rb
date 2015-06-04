@@ -48,7 +48,7 @@ class RubyGem
             lock.synchronize{
               db.save_eventually(gem_info)
               counter=counter+1
-              puts counter
+              # puts counter
             }
           end
         end
@@ -94,7 +94,7 @@ class RubyGem
           source_uri = get_source_uri(hash_content,signal)
           lock.synchronize { add_checked_results(source_uri, source_uri_set) }
         rescue Exception => msg
-          puts msg
+          # puts msg
         end
       end
     end
@@ -130,7 +130,7 @@ class RubyGem
         end
       end
     else
-      puts "the gem #{gem_name} does not have a github uri"
+      # puts "the gem #{gem_name} does not have a github uri"
       return "not with a github uri"
     end
     return combined
